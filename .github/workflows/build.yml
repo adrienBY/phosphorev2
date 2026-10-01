@@ -1,0 +1,29 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -o -q phosphore-v2.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Fetch Glyph Matrix SDK
+        working-directory: phosphore-v2
+        run: |
+          mkdir -p app/libs
+          curl -fsSL -o app/libs/glyph-matrix-sdk-2.0.aar https://github.com/Nothing-Developer-Programme/GlyphMatrix-Developer-Kit/raw/main/glyph-matrix-sdk-2.0.aar
+      - name: Build
+        working-directory: phosphore-v2
+        run: gradle assembleDebug --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phosphore-apk
+          path: phosphore-v2/app/build/outputs/apk/debug/*.apk
